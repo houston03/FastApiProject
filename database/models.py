@@ -3,7 +3,6 @@ from sqlalchemy.orm import relationship, backref
 from .database import Base
 
 
-
 class Article(Base):
     __tablename__ = "articles"
     article_id = Column(Integer, primary_key=True, index=True)

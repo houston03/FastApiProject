@@ -1,15 +1,19 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.schema import CreateTable
-from sqlalchemy.ext.asyncio import AsyncSession
-from database.database import Base # Импортируйте Base
-from database.models import User, Article # Импортируйте ваши модели
+from sqlalchemy.orm import sessionmaker
+from database.database import Base
+from database.models import User, Article
 import os
+from dotenv import load_dotenv
 
+# Загрузка переменных окружения из .env файла
+load_dotenv()
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql+asyncpg://postgres:root@localhost:5432/blogapp")
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL is None:
+    raise ValueError("DATABASE_URL is not set in environment variables")
 
 engine = create_async_engine(DATABASE_URL)
 async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
@@ -26,17 +30,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 from api.auth import router as auth_router
 from api.users import router as users_router
 from api.articles import router as articles_router
 
-
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(articles_router)
-
-
 
 @app.on_event("startup")
 async def startup():
@@ -44,10 +44,6 @@ async def startup():
         async with session.begin():
             async with engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
-            # for table in reversed(Base.metadata.sorted_tables):
-            #     await session.execute(CreateTable(table))
-            # await session.commit()
-
 
 if __name__ == "__main__":
     import uvicorn

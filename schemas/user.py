@@ -15,4 +15,4 @@ class User(BaseModel):
     phone_number: str | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes : True

@@ -1,6 +1,6 @@
-from pydantic import BaseModel, EmailStr
-
+from pydantic import BaseModel
 
 class UserAuth(BaseModel):
-    username: str | EmailStr
-    password: str
+    access_token: str
+    token_type: str
+    user: dict

@@ -1,7 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel
-from schemas.user import User # Импортируйте схему User
-
+from schemas.user import User
 
 class ArticleCreate(BaseModel):
     title: str
@@ -10,15 +9,10 @@ class ArticleCreate(BaseModel):
     summary_2: str | None = None
     author_id: int
 
-
-class Article(BaseModel):
+class Article(ArticleCreate):
     article_id: int
-    title: str
-    category: str
-    summary_1: str | None = None
-    summary_2: str | None = None
     publication_date: datetime
-    author: User #Включите User схему
+    author: User
 
     class Config:
-        orm_mode = True
+        from_attributes = True

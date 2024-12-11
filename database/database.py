@@ -1,20 +1,19 @@
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
 if DATABASE_URL is None:
-    DATABASE_URL = "postgresql://postgres:root@localhost:5432/blogapp" # или другой URL по умолчанию
+    raise ValueError("DATABASE_URL is not set in environment variables")
 
-
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+engine = create_async_engine(DATABASE_URL, echo=True)
+async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 Base = declarative_base()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+async def get_db():
+    async with async_session() as session:
+        yield session
