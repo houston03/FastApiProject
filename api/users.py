@@ -5,9 +5,10 @@ from database.database import get_db
 from database.models import User as UserModel
 from api.auth import get_current_user, create_access_token
 import bcrypt
-import yagmail
-import os
 import logging
+from tasks.tasks import send_confirmation_email_task  # Импортируйте задачу Celery
+import yagmail
+
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -27,10 +28,10 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db), back
 
     # Генерация JWT тут
     access_token = create_access_token(data={"sub": db_user.username})
-    logger.debug(f"Generated JWT Token for user {db_user.username}: {access_token}")  # Добавьте эту строку для логирования токена
+    logger.debug(f"Generated JWT Token for user {db_user.username}: {access_token}")
 
     # Отправка письма в фоновом режиме тут
-    background_tasks.add_task(send_confirmation_email, db_user.email, access_token)
+    background_tasks.add_task(send_confirmation_email_task, db_user.email, access_token)
 
     return db_user
 
@@ -38,21 +39,6 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db), back
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
-def send_confirmation_email(email, access_token):
-    sender_email = YAGMAIL_USER
-    sender_password = YAGMAIL_PASSWORD
-    if not sender_email or not sender_password:
-        logger.error("EMAIL_SENDER or EMAIL_PASSWORD not set!")
-        return
 
-    try:
-        yag = yagmail.SMTP(sender_email, sender_password, host="smtp.yandex.ru", port=465, smtp_ssl=True)
-        subject = "Подтверждение регистрации"
-        body = f"""
-        Спасибо за регистрацию!
-        Ваш код доступа: {access_token}
-        """
-        yag.send(to=email, subject=subject, contents=body)
-        logger.info(f"Письмо отправлено на {email}")
-    except Exception as e:
-        logger.exception(f"Ошибка отправки письма: {e}")
+
+
