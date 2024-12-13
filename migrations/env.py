@@ -1,7 +1,9 @@
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
+from sqlalchemy.engine import Engine
 from alembic import context
 from database.models import Base
+from sqlalchemy.ext.asyncio import create_async_engine
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -16,7 +18,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 target_metadata = Base.metadata
 
-def run_migrations_offline() -> None:
+async def run_migrations_offline():
     """Run migrations in 'offline' mode.
 
     This configures the context with just a URL
@@ -39,7 +41,7 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         context.run_migrations()
 
-def run_migrations_online() -> None:
+async def run_migrations_online():
     """Run migrations in 'online' mode.
 
     In this scenario we need to create an Engine
@@ -52,12 +54,12 @@ def run_migrations_online() -> None:
         poolclass=pool.NullPool,
     )
 
-    with connectable.connect() as connection:
+    async with connectable.connect() as connection:
         context.configure(
             connection=connection, target_metadata=target_metadata
         )
 
-        with context.begin_transaction():
+        async with context.begin_transaction():
             context.run_migrations()
 
 if context.is_offline_mode():

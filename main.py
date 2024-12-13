@@ -6,6 +6,8 @@ from database.database import Base
 from database.models import User, Article
 import os
 from dotenv import load_dotenv
+from starlette.responses import HTMLResponse
+
 
 # Загрузка переменных окружения из .env файла
 load_dotenv()
@@ -44,6 +46,31 @@ async def startup():
         async with session.begin():
             async with engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
+
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    html_content = """
+    <!DOCTYPE html>
+
+    <html lang="ru">
+    <head>
+    
+    <meta charset="UTF-8">
+    
+    <title> FastApiProject</title>
+    </head>
+    
+    <body>
+    <p style="font-family: 'Yu Gothic UI Light'">FastApi/Mentor/Anton/Olya</p>
+    <a style="font-family: 'Yu Gothic UI Light'" href="/docs#/">Swagger</a>
+    <p>Home</p>
+    </body>
+    
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
 
 if __name__ == "__main__":
     import uvicorn
