@@ -7,6 +7,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 # Копируйте приложение
 COPY . /app
 
+
 # Установите рабочую директорию
 WORKDIR /app
 
@@ -14,4 +15,4 @@ WORKDIR /app
 RUN chmod +x apply_migrations.sh wait_for_db.sh
 
 # Устанавливаем команду для запуска приложения
-CMD ["./wait_for_db.sh", "db", "sh", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]
+CMD ["uvicorn", "./wait_for_db.sh", "db", "sh", "-c", "alembic upgrade head && fastApiProject.src.app.main:app --host 0.0.0.0 --port 8000"]

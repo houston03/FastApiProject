@@ -1,6 +1,5 @@
-from celery import Celery
-from api.email import send_confirmation_email
-from .celeryconfig import celery as celery_app  # Импортируйте celery из celery.py
+from src.app.api.email import send_confirmation_email
+from tasks.celeryconfig import celery as celery_app  # Импортируйте celery из celery.py
 
 
 @celery_app.task
