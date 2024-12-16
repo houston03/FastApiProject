@@ -6,6 +6,7 @@ YAGMAIL_USER = "super.avel-2014@yandex.ru"
 YAGMAIL_PASSWORD = "tjvewrgsehvgdsqj"
 logger = logging.getLogger(__name__)
 
+
 def send_confirmation_email(email, access_token):
     sender_email = YAGMAIL_USER
     sender_password = YAGMAIL_PASSWORD
@@ -14,7 +15,13 @@ def send_confirmation_email(email, access_token):
         return
 
     try:
-        yag = yagmail.SMTP(sender_email, sender_password, host="smtp.yandex.ru", port=465, smtp_ssl=True)
+        yag = yagmail.SMTP(
+            sender_email,
+            sender_password,
+            host="smtp.yandex.ru",
+            port=465,
+            smtp_ssl=True,
+        )
         subject = "Подтверждение регистрации"
         body = f"""
         Спасибо за регистрацию!

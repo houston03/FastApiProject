@@ -32,8 +32,11 @@ if not isinstance(SECRET_KEY, str):
 if len(SECRET_KEY) < 32:
     raise ValueError("SECRET_KEY is too short")
 
-logger.debug(f"SECRET_KEY: {SECRET_KEY}, type: {type(SECRET_KEY)}, len: {len(SECRET_KEY)}, repr: {repr(SECRET_KEY)}")
-ALGORITHM = 'HS256'
+logger.debug(
+    f"SECRET_KEY: {SECRET_KEY}, type: {type(SECRET_KEY)}, len: {len(SECRET_KEY)}, repr: {repr(SECRET_KEY)}"
+)
+ALGORITHM = "HS256"
+
 
 def create_access_token(data: dict, expires_delta: datetime.timedelta = None):
     to_encode = data.copy()
@@ -46,16 +49,20 @@ def create_access_token(data: dict, expires_delta: datetime.timedelta = None):
     logger.debug(f"Generated JWT Token: {encoded_jwt}")
     return encoded_jwt
 
+
 def verify_password(plain_password, hashed_password):
     try:
         logger.debug(f"Plain password: {plain_password}")
         logger.debug(f"Hashed password from DB: {hashed_password}")
-        result = bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+        result = bcrypt.checkpw(
+            plain_password.encode("utf-8"), hashed_password.encode("utf-8")
+        )
         logger.debug(f"Password verification result: {result}")
         return result
     except Exception as e:
         logger.exception(f"Ошибка в verify_password: {e}")
         return False
+
 
 async def authenticate_user(username: str, password: str, db: AsyncSession):
     result = await db.execute(select(UserModel).filter(UserModel.username == username))
@@ -66,9 +73,13 @@ async def authenticate_user(username: str, password: str, db: AsyncSession):
         return None
     return user
 
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
+):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -79,7 +90,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-        result = await db.execute(select(UserModel).filter(UserModel.username == username))
+        result = await db.execute(
+            select(UserModel).filter(UserModel.username == username)
+        )
         user = result.scalar_one_or_none()
         if user is None:
             raise credentials_exception
@@ -87,8 +100,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         raise credentials_exception
     return user
 
+
 @router.post("/token", response_model=UserAuth)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)
+):
     try:
         user = await authenticate_user(form_data.username, form_data.password, db)
         if not user:
@@ -101,7 +117,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         user_data = {
             "username": user.username,
             "email": user.email,
-            "phone_number": user.phone_number
+            "phone_number": user.phone_number,
         }
         return {"access_token": access_token, "token_type": "bearer", "user": user_data}
     except Exception as e:

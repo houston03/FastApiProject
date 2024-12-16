@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship, backref
 from src.app.database.database import Base
 from sqlalchemy.dialects.postgresql import TSVECTOR
 
+
 class Article(Base):
     __tablename__ = "articles"
     article_id = Column(Integer, primary_key=True, index=True)
@@ -11,9 +12,12 @@ class Article(Base):
     summary_1 = Column(Text)
     summary_2 = Column(Text)
     publication_date = Column(DateTime(timezone=True), server_default="NOW()")
-    author_id = Column(Integer, ForeignKey('users.user_id')) # Добавлена строка для author_id
-    author = relationship("User", back_populates="articles") # Связь с User
+    author_id = Column(
+        Integer, ForeignKey("users.user_id")
+    )
+    author = relationship("User", back_populates="articles")  # Связь с User
     tsv_content = Column(TSVECTOR)
+
 
 class User(Base):
     __tablename__ = "users"

@@ -6,20 +6,30 @@ from src.app.database.models import User as UserModel
 from src.app.api.auth import get_current_user, create_access_token
 import bcrypt
 import logging
-from tasks.tasks import send_confirmation_email_task  # Импортируйте задачу Celery
+from tasks.tasks import send_confirmation_email_task
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-# Замените на ваши данные для отправки почты
+# Данные для отправки почты
 YAGMAIL_USER = "super.avel-2014@yandex.ru"
-YAGMAIL_PASSWORD = "tjvewrgsehvgdsqj"  # Используйте пароль приложения
+YAGMAIL_PASSWORD = "tjvewrgsehvgdsqj"
 logger = logging.getLogger(__name__)
 
+
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=User)
-async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db), background_tasks: BackgroundTasks = BackgroundTasks()):
-    hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
-    hashed_password_str = hashed_password.decode('utf-8')  # Преобразуем байты в строку
-    db_user = UserModel(username=user.username, email=user.email, password=hashed_password_str, phone_number=user.phone_number)
+async def create_user(
+    user: UserCreate,
+    db: AsyncSession = Depends(get_db),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
+):
+    hashed_password = bcrypt.hashpw(user.password.encode("utf-8"), bcrypt.gensalt())
+    hashed_password_str = hashed_password.decode("utf-8")
+    db_user = UserModel(
+        username=user.username,
+        email=user.email,
+        password=hashed_password_str,
+        phone_number=user.phone_number,
+    )
     db.add(db_user)
     await db.commit()
     await db.refresh(db_user)
@@ -33,10 +43,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db), back
 
     return db_user
 
+
 @router.get("/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
-
-
-
-

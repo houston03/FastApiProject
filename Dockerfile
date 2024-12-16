@@ -1,18 +1,19 @@
 FROM python:3.13-alpine
 
-# Установите зависимости
+# Зависимости
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Копируйте приложение
+# Приложение
 COPY . /app
 
-
-# Установите рабочую директорию
+# Рабочую директория
 WORKDIR /app
 
-# Сделайте скрипты исполняемыми
+# Скрипты на создание миграций
 RUN chmod +x apply_migrations.sh wait_for_db.sh
 
-# Устанавливаем команду для запуска приложения
-CMD ["uvicorn", "./wait_for_db.sh", "db", "sh", "-c", "alembic upgrade head && fastApiProject.src.app.main:app --host 0.0.0.0 --port 8000"]
+# Запуск приложения
+ENV WORKERS_COUNT=4
+ENV TIMEOUT_SECONDS=120
+CMD ["./wait_for_db.sh", "db", "sh", "-c", "alembic upgrade head && gunicorn main:app --bind 0.0.0.0:8000 --workers ${WORKERS_COUNT} --worker-class uvicorn.workers.UvicornWorker --timeout ${TIMEOUT_SECONDS}"]
